@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -10,9 +11,9 @@
           "type": "string",
           "description": "Unique identifier for the user."
         },
-        "username": {
+        "fullName": {
           "type": "string",
-          "description": "The username of the user."
+          "description": "The full name of the user."
         },
         "email": {
           "type": "string",
@@ -23,14 +24,51 @@
           "type": "string",
           "description": "The date and time the user registered.",
           "format": "date-time"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["student", "faculty", "admin"]
         }
       },
       "required": [
         "id",
-        "username",
         "email",
         "registrationDate"
       ]
+    },
+    "Course": {
+      "title": "Course",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "iconName": { "type": "string", "description": "Lucide icon name" }
+      },
+      "required": ["title", "category", "description"]
+    },
+    "FacultyMember": {
+      "title": "Faculty Member",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "experience": { "type": "string" },
+        "description": { "type": "string" },
+        "imageId": { "type": "string", "description": "Reference to placeholder-images.json" }
+      },
+      "required": ["name", "role", "experience"]
+    },
+    "Facility": {
+      "title": "Facility",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "iconName": { "type": "string" },
+        "imageId": { "type": "string" }
+      },
+      "required": ["title", "description"]
     }
   },
   "auth": {
@@ -40,24 +78,29 @@
     ]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profile information. Accessible only by the authenticated user.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "This Firestore structure is designed to support the CampusConnect application, focusing on displaying college information such as courses, faculty, admissions, and facilities. The primary entity is `User`, whose profile data resides in `/users/{userId}`. The application does not have collaborative data or complex access control requirements beyond user authentication, so the structure is relatively simple. Authorization Independence is ensured because user data is accessed directly via their `userId`. QAPs are met because list operations on `/users` are straightforward and secured via rules that check the requesting user's authentication status."
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/backend/entities/User"
+      },
+      "description": "Private user profile data."
+    },
+    "/courses/{courseId}": {
+      "schema": {
+        "$ref": "#/backend/entities/Course"
+      },
+      "description": "Publicly available course information."
+    },
+    "/faculty/{facultyId}": {
+      "schema": {
+        "$ref": "#/backend/entities/FacultyMember"
+      },
+      "description": "Publicly available faculty profiles."
+    },
+    "/facilities/{facilityId}": {
+      "schema": {
+        "$ref": "#/backend/entities/Facility"
+      },
+      "description": "Publicly available campus facility details."
+    }
   }
 }

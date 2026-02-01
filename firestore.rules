@@ -1,31 +1,3 @@
-/**
- * CampusConnect Security Rules
- * 
- * CORE PHILOSOPHY:
- * This ruleset implements a strict User-Ownership model. Access is primarily 
- * controlled by the relationship between the authenticated user's UID and the 
- * document path. Data is private by default, ensuring that users can only 
- * interact with their own profile information.
- * 
- * DATA STRUCTURE:
- * The data is organized at the top level under the /users/ collection.
- * - /users/{userId}: Contains individual profile data for a specific user.
- * 
- * KEY SECURITY DECISIONS:
- * 1. Strict Ownership: All read and write operations on a user's document 
- *    require the request's UID to match the document's ID.
- * 2. Self-Creation: Users are permitted to create their own profile document 
- *    immediately upon registration, provided the document ID matches their UID.
- * 3. Data Integrity: Relational integrity is enforced by ensuring the internal 
- *    'id' field of a user document is immutable and matches the document's path.
- * 4. Privacy: User listing is disabled to prevent user enumeration; users 
- *    can only access their own specific document.
- * 
- * DENORMALIZATION FOR AUTHORIZATION:
- * In this prototype phase, authorization relies on the hierarchical structure 
- * of the database (path-based) and the internal 'id' field to verify identity 
- * without requiring cross-document lookups.
- */
 
 rules_version = '2';
 service cloud.firestore {
@@ -33,47 +5,41 @@ service cloud.firestore {
 
     // --- Helper Functions ---
 
-    /** Checks if the request is from an authenticated user. */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** Checks if the authenticated user's UID matches the provided userId. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** Checks if the user is the owner of an existing document. */
-    function isExistingOwner(userId) {
-      return resource != null && isOwner(userId);
-    }
-
     // --- Collection Rules ---
 
-    /**
-     * @description Rules for user profile documents.
-     * @path /users/{userId}
-     * @allow (create) if the user is authenticated and the document ID matches their UID.
-     * @deny (get) if the authenticated user's UID does not match the userId in the path.
-     * @principle Enforces document ownership and relational integrity for user profiles.
-     */
+    // User Profiles: Private and owned by the user.
     match /users/{userId} {
-      // READS: Only the owner can get their own document. 
-      // Listing is restricted to the specific owner's path to prevent enumeration.
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-
-      // WRITES:
-      
-      // Create: Users can create their own profile. We enforce that the 'id' field matches the path.
+      allow get, list: if isOwner(userId);
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-
-      // Update: Only the existing owner can update. We enforce that the 'id' field is immutable.
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-
-      // Delete: Only the existing owner can delete their account profile.
-      allow delete: if isExistingOwner(userId);
+      allow update: if isOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isOwner(userId);
     }
 
+    // Public Informational Collections
+    // These allow anyone to read, but only admins (if defined) or manual updates can write.
+    // For now, we allow public read access for the prototype.
+    
+    match /courses/{courseId} {
+      allow read: if true;
+      allow write: if false; // Managed via console or admin
+    }
+
+    match /faculty/{facultyId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /facilities/{facilityId} {
+      allow read: if true;
+      allow write: if false;
+    }
   }
 }
