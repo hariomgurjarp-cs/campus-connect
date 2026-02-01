@@ -1,29 +1,48 @@
 'use client';
 import {
-  Auth, // Import Auth type for type hinting
+  Auth,
   signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  // Assume getAuth and app are initialized elsewhere
 } from 'firebase/auth';
+import { doc, setDoc, getFirestore } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 /** Initiate anonymous sign-in (non-blocking). */
 export function initiateAnonymousSignIn(authInstance: Auth): void {
-  // CRITICAL: Call signInAnonymously directly. Do NOT use 'await signInAnonymously(...)'.
   signInAnonymously(authInstance);
-  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
 }
 
-/** Initiate email/password sign-up (non-blocking). */
-export function initiateEmailSignUp(authInstance: Auth, email: string, password: string): void {
-  // CRITICAL: Call createUserWithEmailAndPassword directly. Do NOT use 'await createUserWithEmailAndPassword(...)'.
-  createUserWithEmailAndPassword(authInstance, email, password);
-  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
+/** 
+ * Initiate email/password sign-up (non-blocking). 
+ * Now includes profile creation logic.
+ */
+export function initiateEmailSignUp(authInstance: Auth, email: string, password: string, fullName: string): void {
+  createUserWithEmailAndPassword(authInstance, email, password)
+    .then((userCredential) => {
+      const user = userCredential.user;
+      const db = getFirestore();
+      const profileRef = doc(db, 'users', user.uid);
+      
+      // Create the user profile document in Firestore
+      setDoc(profileRef, {
+        id: user.uid,
+        fullName: fullName,
+        email: email,
+        registrationDate: new Date().toISOString(),
+        role: 'student'
+      }).catch(error => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: profileRef.path,
+          operation: 'create',
+          requestResourceData: { fullName, email }
+        }));
+      });
+    });
 }
 
 /** Initiate email/password sign-in (non-blocking). */
 export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): void {
-  // CRITICAL: Call signInWithEmailAndPassword directly. Do NOT use 'await signInWithEmailAndPassword(...)'.
   signInWithEmailAndPassword(authInstance, email, password);
-  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
 }

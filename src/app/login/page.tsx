@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -22,7 +21,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user && !isUserLoading) {
-      router.push('/');
+      router.push('/profile');
     }
   }, [user, isUserLoading, router]);
 
@@ -31,10 +30,7 @@ export default function LoginPage() {
     if (isLogin) {
       initiateEmailSignIn(auth, email, password);
     } else {
-      initiateEmailSignUp(auth, email, password);
-      // Note: UserProfile creation would typically happen in an onAuthStateChanged listener 
-      // or via a Cloud Function for better reliability, but for this prototype 
-      // we assume the auth state change handles the session.
+      initiateEmailSignUp(auth, email, password, fullName);
     }
   };
 
