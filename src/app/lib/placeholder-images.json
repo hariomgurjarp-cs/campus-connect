@@ -1,0 +1,53 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "hero-campus",
+      "description": "Aerial view of a modern college campus",
+      "imageUrl": "https://picsum.photos/seed/college-hero/1200/600",
+      "imageHint": "college campus"
+    },
+    {
+      "id": "library",
+      "description": "Modern college library with students studying",
+      "imageUrl": "https://picsum.photos/seed/library/800/600",
+      "imageHint": "college library"
+    },
+    {
+      "id": "computer-lab",
+      "description": "High-tech computer laboratory",
+      "imageUrl": "https://picsum.photos/seed/lab/800/600",
+      "imageHint": "computer lab"
+    },
+    {
+      "id": "classroom",
+      "description": "Modern smart classroom with interactive boards",
+      "imageUrl": "https://picsum.photos/seed/class/800/600",
+      "imageHint": "smart classroom"
+    },
+    {
+      "id": "sports",
+      "description": "Students playing on a green sports field",
+      "imageUrl": "https://picsum.photos/seed/sports/800/600",
+      "imageHint": "sports field"
+    },
+    {
+      "id": "hostel",
+      "description": "Comfortable student hostel building",
+      "imageUrl": "https://picsum.photos/seed/hostel/800/600",
+      "imageHint": "student hostel"
+    },
+    {
+      "id": "faculty-1",
+      "description": "Experienced senior professor portrait",
+      "imageUrl": "https://picsum.photos/seed/prof1/400/400",
+      "imageHint": "professor portrait"
+    },
+    {
+      "id": "faculty-2",
+      "description": "Professional female professor portrait",
+      "imageUrl": "https://picsum.photos/seed/prof2/400/400",
+      "imageHint": "female professor"
+    }
+  ]
+}
