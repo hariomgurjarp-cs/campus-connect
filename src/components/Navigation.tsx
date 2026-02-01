@@ -4,9 +4,20 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { GraduationCap, Menu, X } from 'lucide-react';
+import { GraduationCap, Menu, X, User as UserIcon, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from './ui/button';
+import { useUser, useAuth } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navItems = [
   { name: 'Home', href: '/' },
@@ -21,6 +32,12 @@ const navItems = [
 export default function Navigation() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
+
+  const handleLogout = () => {
+    signOut(auth);
+  };
 
   return (
     <nav className="sticky top-0 z-50 bg-primary text-primary-foreground shadow-md">
@@ -33,7 +50,7 @@ export default function Navigation() {
             </Link>
           </div>
 
-          <div className="hidden md:flex space-x-4">
+          <div className="hidden md:flex items-center space-x-4">
             {navItems.map((item) => (
               <Link
                 key={item.href}
@@ -46,6 +63,42 @@ export default function Navigation() {
                 {item.name}
               </Link>
             ))}
+            
+            {!isUserLoading && (
+              user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full ml-4">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-accent text-primary">
+                          {user.email?.[0].toUpperCase() || <UserIcon className="h-4 w-4" />}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
+                        <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile">Profile</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button asChild variant="outline" className="text-white border-white hover:bg-white/10 ml-4">
+                  <Link href="/login">Login</Link>
+                </Button>
+              )
+            )}
           </div>
 
           <div className="md:hidden">
@@ -77,6 +130,26 @@ export default function Navigation() {
                 {item.name}
               </Link>
             ))}
+            {!isUserLoading && !user && (
+              <Link
+                href="/login"
+                onClick={() => setIsOpen(false)}
+                className="block px-3 py-2 rounded-md text-base font-medium text-accent"
+              >
+                Login
+              </Link>
+            )}
+            {user && (
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsOpen(false);
+                }}
+                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-destructive hover:bg-white/10"
+              >
+                Log out
+              </button>
+            )}
           </div>
         </div>
       )}
